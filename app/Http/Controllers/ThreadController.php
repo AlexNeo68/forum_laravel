@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Channel;
 use App\Thread;
+use App\User;
 use Illuminate\Http\Request;
 
 class ThreadController extends Controller
@@ -14,9 +15,10 @@ class ThreadController extends Controller
         $this->middleware('auth')->except('index', 'show');
     }
 
-    public function index()
+    public function index(Channel $channel)
     {
-        $threads = Thread::latest()->get();
+        $threads = $this->getThreads($channel);
+
         return view('threads.index', compact('threads'));
     }
 
@@ -48,37 +50,39 @@ class ThreadController extends Controller
         return view('threads.show', compact('thread'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Thread $thread)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, Thread $thread)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Thread $thread)
     {
         //
+    }
+
+    /**
+     * @param Channel $channel
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function getThreads(Channel $channel): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($channel->exists) {
+            $threads = $channel->threads()->latest();
+        } else {
+            $threads = Thread::latest();
+        }
+
+        if ($username = request('by')) {
+            $user = User::where('name', $username)->first();
+            $threads->where('user_id', $user->id);
+        }
+
+        $threads = $threads->get();
+        return $threads;
     }
 }

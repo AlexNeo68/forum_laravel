@@ -53,8 +53,6 @@ class ThreadsCreateTest extends TestCase
     /** @test */
     public function a_thread_required_channel_id()
     {
-        $channel = create('App\Channel');
-
         $this->publishThread(['channel_id' => null])->assertSessionHasErrors('channel_id');
         $this->publishThread(['channel_id' => 999])->assertSessionHasErrors('channel_id');
     }
