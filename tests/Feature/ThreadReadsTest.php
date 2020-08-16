@@ -40,4 +40,27 @@ class ThreadReadsTest extends TestCase
         $this->get($this->thread->path())
             ->assertSee($reply->title);
     }
+
+    /** @test */
+    public function user_can_filter_threads_on_channel()
+    {
+        $channel = create('App\Channel');
+        $threadInChannel = create('App\Thread', ['channel_id' => $channel->id]);
+        $threadNotInChannel = create('App\Thread');
+
+        $this->get("threads/{$channel->slug}")
+            ->assertSee($threadInChannel->title)
+            ->assertDontSee($threadNotInChannel->title);
+    }
+
+    /** @test */
+    public function user_can_filter_threads_by_username()
+    {
+        $this->signIn($user = create('App\User', ['name' => 'JohnDoe']));
+        $threadAuthUser = create('App\Thread', ['user_id' => auth()->id()]);
+        $threadAnotherUser = create('App\Thread');
+        $this->get('threads?by=JohnDoe')
+            ->assertSee($threadAuthUser->title)
+            ->assertDontSee($threadAnotherUser->title);
+    }
 }
